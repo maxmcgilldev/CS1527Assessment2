@@ -11,25 +11,36 @@ class TreeNode:
 def main():
     try:
         clear_screen() 
-        root = parse((input("Please enter your expression:  ")))
+        expression = input("Please enter your expression: ").replace(" ", "")  # Remove spaces
+        root = parse(expression)
         while True:
-            options = {'1': inorder_visual,
-                    '2': preorder_traversal, 
-                    '3': postorder_traversal, 
-                    '4': breadth_first_traversal,
-                    '5': quit
+            options = {
+                '1': (inorder_visual, "Inorder Traversal"),
+                '2': (preorder_traversal, "Preorder Traversal"),
+                '3': (postorder_traversal, "Postorder Traversal"),
+                '4': (breadth_first_traversal, "Breadth First Traversal"),
+                '5': (quit, "Exit") 
             }
-            
-            choice = input("Please choose an option from the list below by typing its number: \n 1. Visualised Inorder Travsersal\n 2. Preorder Travsersal\n 3. Postorder Travseral\n 4. Breadth first traversal\n 5. Exit\n\n:  ")
-            
+
+            choice = input("\nPlease choose an option from the list below by typing its number: \n"
+                            "1. Visualised Inorder Traversal\n"
+                            "2. Preorder Traversal\n"
+                            "3. Postorder Traversal\n"
+                            "4. Breadth First Traversal\n"
+                            "5. Exit\n\n: ") 
+                       
             if choice == "5":
+                clear_screen()
                 print("Exiting Programme now.")
-                options[choice]()
+                options[choice][0]()  # Call the function directly
+                break  # Ensure we break after quitting to avoid further execution
             elif choice in options:
                 clear_screen() 
-                options[choice](root)
+                print(f"Here is the {options[choice][1]} of your equation:\n")
+                options[choice][0](root)  # Call the function directly using options[choice][0]
+                print("\n")
             else:
-                print("Invalid option, please chose a valid number from the menu")
+                print("Invalid option, please choose a valid number from the menu")
           
     except ValueError as e:
         print(e)
