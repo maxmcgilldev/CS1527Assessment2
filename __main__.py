@@ -19,7 +19,8 @@ def main():
                 '2': (preorder_traversal, "Preorder Traversal"),
                 '3': (postorder_traversal, "Postorder Traversal"),
                 '4': (breadth_first_traversal, "Breadth First Traversal"),
-                '5': (quit, "Exit") 
+                '5': (main, "Change expression"),
+                '6': (quit, "Exit") 
             }
 
             choice = input("\nPlease choose an option from the list below by typing its number: \n"
@@ -27,19 +28,26 @@ def main():
                             "2. Preorder Traversal\n"
                             "3. Postorder Traversal\n"
                             "4. Breadth First Traversal\n"
-                            "5. Exit\n\n: ") 
-                       
+                            "5. Change expression\n"
+                            "6. Exit\n\n: ") 
             if choice == "5":
+                clear_screen()
+                main()
+
+            if choice == "6":
                 clear_screen()
                 print("Exiting Programme now.")
                 options[choice][0]()  # Call the function directly
                 break  # Ensure we break after quitting to avoid further execution
+
             elif choice in options:
                 clear_screen() 
-                print(f"Here is the {options[choice][1]} of your equation:\n")
+                print(f"Here is the {options[choice][1]} of your expression:\n")
                 options[choice][0](root)  # Call the function directly using options[choice][0]
                 print("\n")
+                
             else:
+                clear_screen()
                 print("Invalid option, please choose a valid number from the menu")
           
     except ValueError as e:
@@ -63,45 +71,48 @@ def parse(expression):
         character = expression[i]
 
         if character == '(':
-            # Simply push the '(' onto stack to denote an expression start
             stack.append(character)
         elif character.isdigit():
-            # Create a tree node for the digit and push it onto the stack
             stack.append(TreeNode(character))
         elif character in '+-*/': 
-            # Push the operator onto the stack
             stack.append(character)
         elif character == ')':
-            # Upon encountering a ')', start popping from the stack until '('
-            if len(stack) < 4:  # There should be one operator and two operands
-                raise ValueError("not a vaid expression, there should be at least one operator and two operands between brackets')'.")
-            right = stack.pop()
-            operator = stack.pop()
-            left = stack.pop()
+            if not stack or '(' not in stack:
+                raise ValueError("Not a valid expression, brackets mismatched: an extra closing bracket detected.")
+            
+            contents = []
+            while stack and stack[-1] != '(':
+                contents.append(stack.pop())
 
-            # Ensure that the operands and operator are correctly placed
-            if not (isinstance(left, TreeNode) and isinstance(right, TreeNode) and isinstance(operator, str)):
-                raise ValueError("not a valid expression, operators and operands are misplaced")
+            if stack[-1] == '(':
+                stack.pop()
+            else:
+                raise ValueError("Not a valid expression, brackets mismatched: no matching opening bracket.")
 
-            if stack.pop() != '(':  # This should be the matching '('
-                raise ValueError("not a valid expression, there are an uneven amount of opening parentheses")
+            if len(contents) != 3 or contents[1] not in '+-*/':
+                raise ValueError("Not a valid expression, each operator must be flanked by exactly two operands.")
 
-            # Create a new subtree with the operator as the root
+
+            # Assuming valid format [operand, operator, operand]
+            right = contents.pop(0)
+            operator = contents.pop(0)
+            left = contents.pop(0)
+
+            # Create a new subtree
             node = TreeNode(operator)
             node.left = left
             node.right = right
-
-            # Push the new subtree back onto the stack
             stack.append(node)
         else:
-            raise ValueError(f"not a valid expression, invalid character in use: {character}")
+            raise ValueError(f"Not a valid expression, invalid character in use ({character}), please stick to single digits for operands with the operators *,/,+ and -")
 
         i += 1
 
-    if len(stack) != 1:
-        raise ValueError("not a valid expression, there may be unmatched parentheses or it is incomplete")
-    
+    if len(stack) != 1 or isinstance(stack[0], str):
+        raise ValueError("Not a valid expression, expression is incomplete or brackets are mismatched.")
+
     return stack[0]  # The root of the constructed binary tree
+
 
 
 def inorder_visual(node, indent=""):
