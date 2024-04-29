@@ -59,40 +59,17 @@ def parse(expression):
 
 
 
-def print_in_order_visual(node, indent="", last="updown"):
+def print_in_order_visual(node, indent=""):
     if node is not None:
-        # Print the left child, passing down the indentation
-        print_in_order_visual(node.left, indent + "     ", "up")
+        # Print the left child, increasing indentation
+        print_in_order_visual(node.left, indent + "   ")
 
         # Print the current node's value
-        if last == "up":
-            print(f"{indent}    /-- {node.value}")
-        elif last == "down":
-            print(f"{indent}    \\-- {node.value}")
-        else:
-            print(f"{indent}    {node.value}")
+        print(f"{indent}{node.value}")
 
-        # Print the right child
-        print_in_order_visual(node.right, indent + "     ", "down")
+        # Print the right child, increasing indentation
+        print_in_order_visual(node.right, indent + "   ")
 
-
-
-
-
-
-
-
-
-def print_tree(node, level=0, prefix="Root: "):
-    if node is None:
-        return  # Simply return without printing anything if the node is None
-
-    # Print the current node with its level indentation
-    print(' ' * (level * 4) + prefix + str(node.value))
-    
-    # Recursively print left and right children, adding indentation
-    print_tree(node.left, level + 1, "L--- ")
-    print_tree(node.right, level + 1, "R--- ")
 
 
 
@@ -123,20 +100,19 @@ def breadth_first_traversal(root):
             queue.append(node.right)
 
 
-
-
-
 # Example Usage
-expression = "(((2*(3-2))+6)/3)"
+expression = "(((2*(3+2))+5)/2)"
 try:
     root = parse(expression)
     print(f"Root of the tree is: {root.value} (with left value {root.left.value} and right value {root.right.value})")
-    print_tree(root)
     preorder_traversal(root)
     print("\n")
     postorder_traversal(root)
     print("\n")
     breadth_first_traversal(root)
+    print("\n")
+    print_in_order_visual(root)
+
 
 except ValueError as e:
     print(e)
