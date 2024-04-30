@@ -1,6 +1,5 @@
 import os
 
-
 class TreeNode:
     def __init__(self, value):
         self.value = value
@@ -9,49 +8,57 @@ class TreeNode:
 
 
 def main():
-    try:
-        clear_screen() 
-        expression = input("Please enter your expression: ").replace(" ", "")  # Remove spaces
-        root = parse(expression)
-        while True:
-            options = {
-                '1': (inorder_visual, "Inorder Traversal"),
-                '2': (preorder_traversal, "Preorder Traversal"),
-                '3': (postorder_traversal, "Postorder Traversal"),
-                '4': (breadth_first_traversal, "Breadth First Traversal"),
-                '5': (main, "Change expression"),
-                '6': (quit, "Exit") 
-            }
+    while True:
+        try:
+            clear_screen()
+            expression = input("Please enter your expression: ").replace(" ", "")  # Remove spaces
+            root = parse(expression)
+            break  # Exit loop if expression is parsed successfully
+        except ValueError as e:
+            print(f"\nError: {e}")
+            response = input("\nPress enter to try again or type 'q' to quit: ")
+            if response.lower() == 'q':
+                quit()
+            
 
-            choice = input("\nPlease choose an option from the list below by typing its number: \n"
-                            "1. Visualised Inorder Traversal\n"
-                            "2. Preorder Traversal\n"
-                            "3. Postorder Traversal\n"
-                            "4. Breadth First Traversal\n"
-                            "5. Change expression\n"
-                            "6. Exit\n\n: ") 
-            if choice == "5":
-                clear_screen()
-                main()
+    while True:
+        options = {
+            '1': (inorder_visual, "Inorder Traversal"),
+            '2': (preorder_traversal, "Preorder Traversal"),
+            '3': (postorder_traversal, "Postorder Traversal"),
+            '4': (breadth_first_traversal, "Breadth First Traversal"),
+            '5': (calculate, "Calculate Result"),
+            '6': (main, "Change expression"),
+            '7': (quit, "Exit")
+        }
 
-            if choice == "6":
-                clear_screen()
-                print("Exiting Programme now.")
-                options[choice][0]()  # Call the function directly
-                break  # Ensure we break after quitting to avoid further execution
+        choice = input("\nPlease choose an option from the list below by typing its number: \n"
+                       "1. Visualised Inorder Traversal\n"
+                       "2. Preorder Traversal\n"
+                       "3. Postorder Traversal\n"
+                       "4. Breadth First Traversal\n"
+                       "5. Calculate Result\n"
+                       "6. Change Expression\n"
+                       "7. Exit\n: ")
 
-            elif choice in options:
-                clear_screen() 
-                print(f"Here is the {options[choice][1]} of your expression:\n")
-                options[choice][0](root)  # Call the function directly using options[choice][0]
-                print("\n")
-                
+        if choice == '6':
+            main()
+        elif choice == '7':
+            clear_screen()
+            print("Exiting Programme now.")
+            break  # Correct exit from the loop
+        elif choice in options:
+            clear_screen()
+            if choice == '5':
+                result = calculate(root)
+                print(f"The calculated result is: {result}")
             else:
-                clear_screen()
-                print("Invalid option, please choose a valid number from the menu")
-          
-    except ValueError as e:
-        print(e)
+                print(f"Here is the {options[choice][1]} of your expression:\n")
+                options[choice][0](root)
+                print("\n")
+        else:
+            clear_screen()
+            print("Invalid option, please choose a valid number from the menu")
 
 
 def clear_screen():
@@ -70,16 +77,11 @@ def parse(expression):
     while i < n:
         character = expression[i]
 
-        if character == '(':
-            stack.append(character)
-        elif character.isdigit():
-            stack.append(TreeNode(character))
-        elif character in '+-*/': 
-            stack.append(character)
-        elif character == ')':
+        # Check for closing bracket without a matching open
+        if character == ')':
             if not stack or '(' not in stack:
                 raise ValueError("Not a valid expression, brackets mismatched: an extra closing bracket detected.")
-            
+
             contents = []
             while stack and stack[-1] != '(':
                 contents.append(stack.pop())
@@ -89,26 +91,39 @@ def parse(expression):
             else:
                 raise ValueError("Not a valid expression, brackets mismatched: no matching opening bracket.")
 
+            # Check the structure inside the brackets
             if len(contents) != 3 or contents[1] not in '+-*/':
-                raise ValueError("Not a valid expression, each operator must be flanked by exactly two operands.")
+                raise ValueError("Not a valid expression, each operation must have exactly one operator and two operands.")
 
-
-            # Assuming valid format [operand, operator, operand]
+            # Create a new subtree with left and right children
             right = contents.pop(0)
             operator = contents.pop(0)
             left = contents.pop(0)
-
-            # Create a new subtree
             node = TreeNode(operator)
             node.left = left
             node.right = right
             stack.append(node)
+        elif character in '+-*/':
+            # Check if an operator is followed by another operator or is at the end
+            if i + 1 == n or expression[i+1] in '+-*/':
+                raise ValueError(f"Not a valid expression, invalid sequence of operators near '{character}'.")
+            if not stack or not isinstance(stack[-1], TreeNode):
+                raise ValueError(f"Not a valid expression, operator '{character}' is not preceded by an operand.")
+            stack.append(character)
+        elif character.isdigit():
+            # Check if a number is directly followed by another number without an operator
+            if stack and isinstance(stack[-1], TreeNode):
+                raise ValueError(f"Not a valid expression, two single digit operands need to have one operator between them - invalid digit:'{character}' .")
+            stack.append(TreeNode(character))
+        elif character == '(':
+            stack.append(character)
         else:
-            raise ValueError(f"Not a valid expression, invalid character in use ({character}), please stick to single digits for operands with the operators *,/,+ and -")
+            raise ValueError(f"Not a valid expression, invalid character in use ({character}), please use only single digits for operands with the operators *, /, +, and -")
 
         i += 1
 
-    if len(stack) != 1 or isinstance(stack[0], str):
+    # Final check for unmatched opening brackets
+    if len(stack) != 1 or not isinstance(stack[0], TreeNode):
         raise ValueError("Not a valid expression, expression is incomplete or brackets are mismatched.")
 
     return stack[0]  # The root of the constructed binary tree
@@ -154,6 +169,25 @@ def breadth_first_traversal(root):
         if node.right:
             queue.append(node.right)
 
+
+def calculate(node):
+    if node is None:
+        return 0
+    if node.left is None and node.right is None:
+        return int(node.value)
+    left_val = calculate(node.left)
+    right_val = calculate(node.right)
+    if node.value == '+':
+        return left_val + right_val
+    elif node.value == '-':
+        return left_val - right_val
+    elif node.value == '*':
+        return left_val * right_val
+    elif node.value == '/':
+        if right_val == 0:
+            raise ValueError("Division error, cannot divide by zero.")
+        return left_val / right_val  # Ensure division returns a result
+    
 
 if __name__ == "__main__":
     main()
