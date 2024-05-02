@@ -8,9 +8,11 @@ import sys
 """
 Expression to Binary Tree Parcer
 
+
 Description:
     This single file program automatically converts mathematical expressions into binary trees and allows for the user to perform operations including a visualised binary tree of an inorder traversal, preorder, postorder, and breadth-first traversals. It also evaluates the expressions based on the constructed tree.
 
+    
 Features:
     • Automatically parses mathematical expressions into binary trees.
     • Can Visually Output the Binary tree using an inorder traversal (reads right to left when tilted 90° right).
@@ -22,9 +24,11 @@ Features:
     • Error Handling: error reporting for included for input errors such as mismatched parentheses, invalid characters, missing opening/closing parentheses and wrongly formatted expressions.
     • User-Friendly Interface: Added an interactive terminal user interface to guide the user through the different features and options available to them.
 
+    
 Installation:
     No installation required, just run the script with Python installed on your device.
 
+    
 Usage:
     Run the script from the command line:
         python assessment2.py
@@ -34,14 +38,25 @@ Usage:
 
 Testing:
     To run the tests included with this application, execute the script from your command line with "--test" at the end. For example:
-
         python assessment2.py --test
 
-    This will initiate the script in test mode, running all predefined unit tests instead of the user interface.
+    This will initiate the script in test mode, running all predefined unit tests instead of showing the user interface.
     There are 3 main tests used in this code:
             •Tree structure test, used to verify that the bianry tree is constructed correctly for an expression
             •Tree evaluation test, used to check if the tree correctly evauluates an expression to the expected result.
             •Error handling test, used to check if the tree robustly handles errors.
+    Once run, it should print something like this:
+
+        ..
+        ----------------------------------------------------------------------
+        Ran 2 tests in 0.000s
+        OK
+
+    The two dots indicate two successful tests have been passed, followed by how many tests and how long it took to execute them.
+    'OK' Is then printed to indicate all tests were run without any errors or issues.
+
+    If any issues arise, one of the dots will be replaced with an 'F', indicating what test has failed, followed by a traceback showing the exact issue.
+
     
 
 Credits:
@@ -153,15 +168,21 @@ def parse(expression):
             # Check the structure inside the brackets
             if len(contents) != 3 or contents[1] not in '+-*/':
                 raise ValueError("each operation must have exactly one operator and two operands.")
-
+            
             # Create a new subtree with left and right children
             right = contents.pop(0)
             operator = contents.pop(0)
+
+             # Check for division by zero during parsing to prevent further issues when calculating
+            if operator == '/' and isinstance(right, TreeNode) and right.value == '0':
+                raise ValueError("Division by zero is not allowed.")
+            
             left = contents.pop(0)
             node = TreeNode(operator)
             node.left = left
             node.right = right
             stack.append(node)
+
         elif character in '+-*/':
             # Check if an operator is followed by another operator or is at the end
             if i + 1 == n or expression[i+1] in '+-*/':
@@ -218,8 +239,6 @@ def postorder_traversal(node):
 def breadth_first_traversal(root):
     if root is None:
         return
-    
-
     queue = [root]  #uses a list as a queue
     while queue:
         node = queue.pop(0)
@@ -251,7 +270,7 @@ def calculate(node):
 
 #Class used for all aspects of testing, divided into seperate functions for specific testing, names are self explanatory.
 class TestBinaryTree(unittest.TestCase):
-    def simple_expression_test(self):
+    def test_easy_expression(self):
         expression = "(2/5)"
         root = parse(expression)
         self.assertEqual(root.value, '/')
@@ -260,19 +279,49 @@ class TestBinaryTree(unittest.TestCase):
         self.assertEqual(root.left.value, '2')
         self.assertEqual(root.right.value, '5')
 
-    def harder_expression_test(self):
+    def test_hard_expression(self):
         expression = "((2*3)+(3-4))"
         root = parse(expression)
         self.assertEqual(root.value, '+')
+        self.assertIsInstance(root, TreeNode)
         # Check the structure of the left subtree
+        self.assertIsInstance(root.left, TreeNode)
         self.assertEqual(root.left.value, '*')
+        self.assertIsInstance(root.left.left, TreeNode)
         self.assertEqual(root.left.left.value, '2')
+        self.assertIsInstance(root.left.right, TreeNode)
         self.assertEqual(root.left.right.value, '3')
         # Check the structure of the right subtree
+        self.assertIsInstance(root.right, TreeNode)
         self.assertEqual(root.right.value, '-')
+        self.assertIsInstance(root.right.left, TreeNode)
         self.assertEqual(root.right.left.value, '3')
+        self.assertIsInstance(root.right.right, TreeNode)
         self.assertEqual(root.right.right.value, '4')
 
+    #Functions for testing the evaluations of the expressions
+    def test_expression_evaluation(self):
+        expression = "((2+3)*(4-1))"
+        root = parse(expression)
+        result = calculate(root)
+        self.assertEqual(result, 15)
+
+    #Functions for testing the error handling 
+    def test_division_by_zero(self):
+        expression = "(1/0)"
+        root = parse(expression)
+        with self.assertRaises(ValueError, msg="Should raise division by zero error"):
+            calculate(root)
+
+    def test_mismatched_parentheses(self):
+        expressions = "(2+(8*9)"
+        with self.assertRaises(ValueError, msg=f"Should handle mismatched parentheses"):
+            parse(expressions)
+
+    def test_invalid_characters(self):
+        expression = "(2&3)"
+        with self.assertRaises(ValueError, msg="Should raise error for invalid characters"):
+            parse(expression)
 
 
 
