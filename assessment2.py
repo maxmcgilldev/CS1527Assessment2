@@ -1,6 +1,9 @@
-#importing os library in order to clear the users terminal depending on which system they are using, unittest used for confirmation of correct values in data structures.
+#os imported for clearing the terminal, 
+#unittest for validation of correct values in data structures, 
+#sys for accessing the testing methods.
 import os 
 import unittest
+import sys
 
 """
 Expression to Binary Tree Parcer
@@ -30,6 +33,16 @@ Usage:
     If you are struggling to see the visualised binary tree or any other wanted outputs, the terminal window may be too small in which you will either need to scroll or expand the window.
 
 Testing:
+    To run the tests included with this application, execute the script from your command line with "--test" at the end. For example:
+
+        python assessment2.py --test
+
+    This will initiate the script in test mode, running all predefined unit tests instead of the user interface.
+    There are 3 main tests used in this code:
+            •Tree structure test, used to verify that the bianry tree is constructed correctly for an expression
+            •Tree evaluation test, used to check if the tree correctly evauluates an expression to the expected result.
+            •Error handling test, used to check if the tree robustly handles errors.
+    
 
 Credits:
     Binary Tree and traversal information, used as reference: (https://www.geeksforgeeks.org/binary-tree-data-structure/)
@@ -37,7 +50,6 @@ Credits:
     Python Documentation, used as reference: (https://docs.python.org/3/)
     Other Python Documentation, used as reference: (https://docs.python-guide.org/writing/documentation/)
     Notes from the CS1527 course were used throughout the implementation and design process.
-
 
 Information:
     StudentID: 52317470
@@ -235,8 +247,42 @@ def calculate(node):
         if right_val == 0:
             raise ValueError("Division error, cannot divide by zero.")
         return left_val / right_val  # Ensure division returns a result
-    
+
+
+#Class used for all aspects of testing, divided into seperate functions for specific testing, names are self explanatory.
+class TestBinaryTree(unittest.TestCase):
+    def simple_expression_test(self):
+        expression = "(2/5)"
+        root = parse(expression)
+        self.assertEqual(root.value, '/')
+        self.assertIsInstance(root.left, TreeNode)
+        self.assertIsInstance(root.right, TreeNode)
+        self.assertEqual(root.left.value, '2')
+        self.assertEqual(root.right.value, '5')
+
+    def harder_expression_test(self):
+        expression = "((2*3)+(3-4))"
+        root = parse(expression)
+        self.assertEqual(root.value, '+')
+        # Check the structure of the left subtree
+        self.assertEqual(root.left.value, '*')
+        self.assertEqual(root.left.left.value, '2')
+        self.assertEqual(root.left.right.value, '3')
+        # Check the structure of the right subtree
+        self.assertEqual(root.right.value, '-')
+        self.assertEqual(root.right.left.value, '3')
+        self.assertEqual(root.right.right.value, '4')
+
+
+
 
 if __name__ == "__main__":
-    while True:
-        main()
+    # Check if "--test" is in the command-line arguments
+    if "--test" in sys.argv:
+        # Remove "--test" from sys.argv to prevent unittest from processing it
+        sys.argv.remove("--test")
+        # Run unittests
+        unittest.main()
+    else:
+        while True:
+            main()
