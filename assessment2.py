@@ -55,7 +55,7 @@ Testing:
     The two dots indicate two successful tests have been passed, followed by how many tests and how long it took to execute them.
     'OK' Is then printed to indicate all tests were run without any errors or issues.
 
-    If any issues arise, one of the dots will be replaced with an 'F', indicating what test has failed, followed by a traceback showing the exact issue.
+    If any issues arise, one of the dots will be replaced with an 'E' or 'F', indicating what test has failed, followed by a traceback showing the exact issue.
 
     
 
@@ -309,9 +309,9 @@ class TestBinaryTree(unittest.TestCase):
     #Functions for testing the error handling 
     def test_division_by_zero(self):
         expression = "(1/0)"
-        root = parse(expression)
-        with self.assertRaises(ValueError, msg="Should raise division by zero error"):
-            calculate(root)
+        with self.assertRaises(ValueError) as context:
+            root = parse(expression)
+        self.assertIn("Division by zero is not allowed", str(context.exception))
 
     def test_mismatched_parentheses(self):
         expressions = "(2+(8*9)"
@@ -324,13 +324,12 @@ class TestBinaryTree(unittest.TestCase):
             parse(expression)
 
 
-
 if __name__ == "__main__":
     # Check if "--test" is in the command-line arguments
     if "--test" in sys.argv:
-        # Remove "--test" from sys.argv to prevent unittest from processing it
+        # Remove "--test" from users text to prevent unittest from processing it and crashing
         sys.argv.remove("--test")
-        # Run unittests
+        # Running the unittests
         unittest.main()
     else:
         while True:
