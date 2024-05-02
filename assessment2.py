@@ -1,12 +1,12 @@
-#importing os library in order to clear the users terminal depending on which system they are using.
+#importing os library in order to clear the users terminal depending on which system they are using, unittest used for confirmation of correct values in data structures.
 import os 
+import unittest
 
 """
 Expression to Binary Tree Parcer
 
 Description:
-    This single file program automatically converts mathematical expressions into binary trees and allows for the user to perform operations such as
-    inorder, preorder, postorder, and breadth-first traversals. It also evaluates the expressions based on the constructed tree.
+    This single file program automatically converts mathematical expressions into binary trees and allows for the user to perform operations including a visualised binary tree of an inorder traversal, preorder, postorder, and breadth-first traversals. It also evaluates the expressions based on the constructed tree.
 
 Features:
     • Automatically parses mathematical expressions into binary trees.
@@ -20,21 +20,23 @@ Features:
     • User-Friendly Interface: Added an interactive terminal user interface to guide the user through the different features and options available to them.
 
 Installation:
-    No installation required, just run the script with Python 3.8 or higher.
+    No installation required, just run the script with Python installed on your device.
 
 Usage:
     Run the script from the command line:
         python assessment2.py
 
     Read and follow the on-screen menu and prompts to select specific features of this project.
+    If you are struggling to see the visualised binary tree or any other wanted outputs, the terminal window may be too small in which you will either need to scroll or expand the window.
 
 Testing:
 
 Credits:
-    Binary Tree and traversal information, used as reference (https://www.geeksforgeeks.org/binary-tree-data-structure/)
-    Stacks & Queues Information, used as reference (https://www.geeksforgeeks.org/stack-and-queues-in-python/)
-    Python Documentation, used as reference(https://docs.python.org/3/)
-    Other Python Documentation, used as reference (https://docs.python-guide.org/writing/documentation/)
+    Binary Tree and traversal information, used as reference: (https://www.geeksforgeeks.org/binary-tree-data-structure/)
+    Stacks & Queues Information, used as reference: (https://www.geeksforgeeks.org/stack-and-queues-in-python/)
+    Python Documentation, used as reference: (https://docs.python.org/3/)
+    Other Python Documentation, used as reference: (https://docs.python-guide.org/writing/documentation/)
+    Notes from the CS1527 course were used throughout the implementation and design process.
 
 
 Information:
@@ -48,7 +50,7 @@ Information:
 class TreeNode:
     def __init__(self, value):
         self.value = value
-        self.left = None
+        self.left = None #Declared as none tather that int or string as unkown whether child will be operator or operand
         self.right = None
 
 
@@ -56,29 +58,30 @@ class TreeNode:
 def main():
     while True:
         try:
-            clear_screen()
+            clear_screen() #Clearing terminal for declutter
             expression = input("Please enter your expression: ").replace(" ", "")  #Removes any unwanted spaces from the equation before parcing 
             root = parse(expression)
             break  #Ends the loop if parcing was successful 
         except ValueError as e:
-            print(f"\nError: {e}")
+            print(f"\nNot a valid expression, {e}")
             response = input("\nPress enter to try again or type 'q' to quit: ")
             if response.lower() == 'q':
                 quit()
             
 
     while True:
+        #Dictionary containing number keys pairing to tuples containing both a call to the function and a string to be used in an f-string 
         options = {
             '1': (inorder_visual, "Inorder Traversal"),
             '2': (preorder_traversal, "Preorder Traversal"),
             '3': (postorder_traversal, "Postorder Traversal"),
             '4': (breadth_first_traversal, "Breadth First Traversal"),
             '5': (calculate, "Calculate Result"),
-            '6': (main, "Change expression"),
-            '7': (quit, "Exit")
+            '6': (main),
+            '7': (quit)
         }
 
-        choice = input("\nPlease choose an option from the list below by typing its number: \n"
+        choice = input("Please choose an option from the list below by typing its number: \n"
                        "1. Visualised Inorder Traversal\n"
                        "2. Preorder Traversal\n"
                        "3. Postorder Traversal\n"
@@ -87,23 +90,22 @@ def main():
                        "6. Change Expression\n"
                        "7. Exit\n: ")
 
-        if choice == '6':
-            main()
-        elif choice == '7':
-            clear_screen()
-            print("Exiting Programme now.")
-            break  # Correct exit from the loop
-        elif choice in options:
+        if choice in options:
             clear_screen()
             if choice == '5':
                 result = calculate(root)
                 print(f"The calculated result is: {result}")
+            elif choice == '6':
+                return  # Exits the current main loop and re-invokes it
+            elif choice == '7':
+                print("Exiting Programme now.")
+                break
             else:
-                print(f"Here is the {options[choice][1]} of your expression:\n")
-                options[choice][0](root)
+                function, description = options[choice]
+                print(f"Here is the {description} of your expression:\n")
+                function(root)
                 print("\n")
         else:
-            clear_screen()
             print("Invalid option, please choose a valid number from the menu")
 
 
@@ -119,27 +121,26 @@ def parse(expression):
     stack = []
     i = 0
     n = len(expression)
-
+    if expression[0] != "(" or expression[-1] != ")":
+        raise ValueError("expresisons must be surrounded by opening and closing brackets")
     while i < n:
         character = expression[i]
 
         #Checking for closing bracket without a matching open.
         if character == ')':
             if not stack or '(' not in stack:
-                raise ValueError("Not a valid expression, brackets mismatched: an extra closing bracket detected.")
+                raise ValueError("brackets mismatched: an extra closing bracket detected.")
 
             contents = []
             while stack and stack[-1] != '(':
                 contents.append(stack.pop())
 
             if stack[-1] == '(':
-                stack.pop()
-            else:
-                raise ValueError("Not a valid expression, brackets mismatched: no matching opening bracket.")
+                stack.pop() #Checks again for opening bracket, shoud'nt be anything else as that error should be caught at the start of the parsing function, but it is just in case.
 
             # Check the structure inside the brackets
             if len(contents) != 3 or contents[1] not in '+-*/':
-                raise ValueError("Not a valid expression, each operation must have exactly one operator and two operands.")
+                raise ValueError("each operation must have exactly one operator and two operands.")
 
             # Create a new subtree with left and right children
             right = contents.pop(0)
@@ -152,25 +153,25 @@ def parse(expression):
         elif character in '+-*/':
             # Check if an operator is followed by another operator or is at the end
             if i + 1 == n or expression[i+1] in '+-*/':
-                raise ValueError(f"Not a valid expression, invalid sequence of operators near '{character}'.")
+                raise ValueError(f" invalid sequence of operators near '{character}'.")
             if not stack or not isinstance(stack[-1], TreeNode):
-                raise ValueError(f"Not a valid expression, operator '{character}' is not preceded by an operand.")
+                raise ValueError(f" operator '{character}' is not preceded by an operand.")
             stack.append(character)
         elif character.isdigit():
             # Check if a number is directly followed by another number without an operator
             if stack and isinstance(stack[-1], TreeNode):
-                raise ValueError(f"Not a valid expression, two single digit operands need to have one operator between them - invalid digit:'{character}' .")
+                raise ValueError(f" two single digit operands need to have one operator between them - invalid digit:'{character}' .")
             stack.append(TreeNode(character))
         elif character == '(':
             stack.append(character)
         else:
-            raise ValueError(f"Not a valid expression, invalid character in use ({character}), please use only single digits for operands with the operators *, /, +, and -")
+            raise ValueError(f" invalid character in use ({character}), please use only single digits for operands with the operators *, /, +, and -")
 
         i += 1
 
     # Final check for unmatched opening brackets
     if len(stack) != 1 or not isinstance(stack[0], TreeNode):
-        raise ValueError("Not a valid expression, expression is incomplete or brackets are mismatched.")
+        raise ValueError(" expression is incomplete or brackets are mismatched.")
 
     return stack[0]  # The root of the constructed binary tree
 
@@ -178,13 +179,13 @@ def parse(expression):
 
 def inorder_visual(node, indent=""):
     if node is not None:
-        # Print the left child, increasing indentation
+        # Print the left child with increasing spaces
         inorder_visual(node.left, indent + "   ")
 
-        # Print the current node's value
+        # Print the current nodes value
         print(f"{indent}{node.value}")
 
-        # Print the right child, increasing indentation
+        # Print the right child with increasing spaces
         inorder_visual(node.right, indent + "   ")
 
 
@@ -206,9 +207,10 @@ def breadth_first_traversal(root):
     if root is None:
         return
     
-    queue = [root]  # Use a list as a queue
+
+    queue = [root]  #uses a list as a queue
     while queue:
-        node = queue.pop(0)  # Pop the first element; note this is O(n) operation
+        node = queue.pop(0)
         print(node.value, end=' ')
         if node.left:
             queue.append(node.left)
@@ -236,4 +238,5 @@ def calculate(node):
     
 
 if __name__ == "__main__":
-    main()
+    while True:
+        main()
