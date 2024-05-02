@@ -144,36 +144,36 @@ def clear_screen():
         os.system('clear')
 
 #Parses users math expression and constructs the binary tree from it, also deals with and raises any errors in the format of the expression.
-def parse(expression):  
+def parse(expression):
+    # First, check if the expression is empty
+    if not expression:
+        raise ValueError("No expression entered. Please provide a valid mathematical expression in the form (X?Y).")
+
+    # Then check if the expression starts with '(' and ends with ')'
+    if expression[0] != "(" or expression[-1] != ")":
+        raise ValueError("Expressions must be surrounded by opening and closing brackets.")
+    
     stack = []
     i = 0
     n = len(expression)
-    if expression[0] != "(" or expression[-1] != ")":
-        raise ValueError("expresisons must be surrounded by opening and closing brackets")
     while i < n:
         character = expression[i]
 
-        #Checking for closing bracket without a matching open.
         if character == ')':
             if not stack or '(' not in stack:
-                raise ValueError("brackets mismatched: an extra closing bracket detected.")
+                raise ValueError("Brackets mismatched: an extra closing bracket detected.")
 
             contents = []
             while stack and stack[-1] != '(':
                 contents.append(stack.pop())
-
             if stack[-1] == '(':
-                stack.pop() #Checks again for opening bracket, shoud'nt be anything else as that error should be caught at the start of the parsing function, but it is just in case.
+                stack.pop()
 
-            # Check the structure inside the brackets
             if len(contents) != 3 or contents[1] not in '+-*/':
-                raise ValueError("each operation must have exactly one operator and two operands.")
+                raise ValueError("Each operation must have exactly one operator and two operands.")
             
-            # Create a new subtree with left and right children
             right = contents.pop(0)
             operator = contents.pop(0)
-
-             # Check for division by zero during parsing to prevent further issues when calculating
             if operator == '/' and isinstance(right, TreeNode) and right.value == '0':
                 raise ValueError("Division by zero is not allowed.")
             
@@ -184,27 +184,26 @@ def parse(expression):
             stack.append(node)
 
         elif character in '+-*/':
-            # Check if an operator is followed by another operator or is at the end
             if i + 1 == n or expression[i+1] in '+-*/':
-                raise ValueError(f" invalid sequence of operators near '{character}'.")
+                raise ValueError(f"Invalid sequence of operators near '{character}'.")
             if not stack or not isinstance(stack[-1], TreeNode):
-                raise ValueError(f" operator '{character}' is not preceded by an operand.")
+                raise ValueError(f"Operator '{character}' is not preceded by an operand.")
             stack.append(character)
+
         elif character.isdigit():
-            # Check if a number is directly followed by another number without an operator
             if stack and isinstance(stack[-1], TreeNode):
-                raise ValueError(f" two single digit operands need to have one operator between them - invalid digit:'{character}' .")
+                raise ValueError(f"Two operands in sequence without an operator between them: '{character}' detected.")
             stack.append(TreeNode(character))
+
         elif character == '(':
             stack.append(character)
         else:
-            raise ValueError(f" invalid character in use ({character}), please use only single digits for operands with the operators *, /, +, and -")
+            raise ValueError(f"Invalid character in use ({character}). Please use only single digits for operands with the operators *, /, +, and -")
 
         i += 1
 
-    # Final check for unmatched opening brackets
     if len(stack) != 1 or not isinstance(stack[0], TreeNode):
-        raise ValueError(" expression is incomplete or brackets are mismatched.")
+        raise ValueError("Expression is incomplete or brackets are mismatched.")
 
     return stack[0]  # The root of the constructed binary tree
 
@@ -322,6 +321,7 @@ class TestBinaryTree(unittest.TestCase):
         expression = "(2&3)"
         with self.assertRaises(ValueError, msg="Should raise error for invalid characters"):
             parse(expression)
+
 
 
 if __name__ == "__main__":
