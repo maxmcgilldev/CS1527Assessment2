@@ -126,7 +126,7 @@ def main():
                 return  # Exits the current main loop and re-invokes it
             elif choice == '7':
                 print("Exiting Programme now.")
-                break
+                exit()
             else:
                 function, description = options[choice]
                 print(f"Here is the {description} of your expression:\n")
